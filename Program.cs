@@ -3,26 +3,26 @@ using System.Reflection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBot.Utilities;
 
 namespace DiscordBot
 {
     public class Program
     {
-        private static DiscordSocketClient _client;
-        private static CommandService _commands;
-        private static IServiceProvider _services;
+        private static DiscordSocketClient _client = new DiscordSocketClient();
+        private static CommandService _commands = new CommandService();
+        private const string PREFIX = "!"; // Command prefix
 
         public static async Task Main()
         {
             try
             {
-                _client = new DiscordSocketClient();
-                _commands = new CommandService();
+                _client.Log += Logger.Log;
 
-                _client.Log += Log;
-
+                // Get the token from file
                 var token = File.ReadAllText("token.txt");
 
+                // Await to register commands
                 await RegisterCommandsAsync();
 
                 await _client.LoginAsync(TokenType.Bot, token);
@@ -32,12 +32,15 @@ namespace DiscordBot
             }
             catch (Exception ex)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error: {ex.Message}");
+                Console.ResetColor();
             }
         }
 
         private static async Task RegisterCommandsAsync()
         {
+            // Create a command context and register the commands
             _client.MessageReceived += HandleCommandAsync;
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
         }
@@ -51,23 +54,21 @@ namespace DiscordBot
 
             int argPosition = 0;
 
-            if (message.HasStringPrefix("!", ref argPosition) || message.HasMentionPrefix(_client.CurrentUser, ref argPosition))
+            // Check if the message has a command prefix or mentions the bot
+            if (message.HasStringPrefix(PREFIX, ref argPosition) || message.HasMentionPrefix(_client.CurrentUser, ref argPosition))
             {
                 try
                 {
-                    var result = await _commands.ExecuteAsync(context, argPosition, null);
+                    // Execute the command with the context and arguments
+                    IResult result = await _commands.ExecuteAsync(context, argPosition, null);
                 }
                 catch (Exception ex)
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Error: {ex.Message}");
+                    Console.ResetColor();
                 }
             }
-        }
-
-        private static Task Log(LogMessage msg)
-        {
-            Console.WriteLine(msg.ToString());
-            return Task.CompletedTask;
         }
     }
 }
