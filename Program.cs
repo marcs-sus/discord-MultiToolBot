@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using Microsoft;
+using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -11,6 +13,7 @@ namespace DiscordBot
     {
         private static DiscordSocketClient _client = new DiscordSocketClient();
         private static CommandService _commands = new CommandService();
+        private static ServiceCollection _services = new ServiceCollection();
         private const string PREFIX = "!"; // Command prefix
 
         public static async Task Main()
@@ -40,9 +43,12 @@ namespace DiscordBot
 
         private static async Task RegisterCommandsAsync()
         {
+            _services.AddSingleton(_commands);
+            var provider = _services.BuildServiceProvider();
+
             // Create a command context and register the commands
             _client.MessageReceived += HandleCommandAsync;
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), provider);
         }
 
         private static async Task HandleCommandAsync(SocketMessage messageParam)
@@ -50,6 +56,7 @@ namespace DiscordBot
             var message = messageParam as SocketUserMessage;
             var context = new SocketCommandContext(_client, message);
 
+            // Cancel if the message is null or if the author is a bot
             if (message == null || message.Author.IsBot) return;
 
             int argPosition = 0;
@@ -60,7 +67,7 @@ namespace DiscordBot
                 try
                 {
                     // Execute the command with the context and arguments
-                    IResult result = await _commands.ExecuteAsync(context, argPosition, null);
+                    await _commands.ExecuteAsync(context, argPosition, null);
                 }
                 catch (Exception ex)
                 {

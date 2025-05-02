@@ -6,8 +6,10 @@ using Discord.Commands;
 namespace DiscordBot.Modules
 {
     /// <summary>
-    /// /// This module contains a command that simulates rolling a dice with a specified number of sides and rolls.
+    /// This module contains a command that rolls a dice with a specified number of sides and rolls.
     /// </summary>
+    [Name("Dice")]
+    [Summary("This module contains a command that rolls a dice with a specified number of sides and rolls.")]
     public class DiceModule : ModuleBase<SocketCommandContext>
     {
         [Command("roll")]
