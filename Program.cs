@@ -6,6 +6,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Utilities;
+using DiscordBot.Modules;
 
 namespace DiscordBot
 {
@@ -14,7 +15,8 @@ namespace DiscordBot
         private static DiscordSocketClient _client = new DiscordSocketClient();
         private static CommandService _commands = new CommandService();
         private static ServiceCollection _services = new ServiceCollection();
-        private const string PREFIX = "!"; // Command prefix
+        private const string BOT_PREFIX = "rob"; // Bot prefix
+        public const string COMMAND_PREFIX = "!"; // Command prefix
 
         public static async Task Main()
         {
@@ -54,26 +56,56 @@ namespace DiscordBot
         private static async Task HandleCommandAsync(SocketMessage messageParam)
         {
             var message = messageParam as SocketUserMessage;
-            var context = new SocketCommandContext(_client, message);
-
             // Cancel if the message is null or if the author is a bot
             if (message == null || message.Author.IsBot) return;
 
+            var context = new SocketCommandContext(_client, message);
+
+            // Call the Hello and Help command when only mentioned
+            string mention = $"<@{_client.CurrentUser.Id}>";
+            if (message.Content.Trim() == mention)
+            {
+                await context.Channel.SendMessageAsync
+                    ($"Hello **{context.User.Mention}**! I am your bot. Use `{COMMAND_PREFIX}help` to see what I can do!");
+                return;
+            }
+
             int argPosition = 0;
 
-            // Check if the message has a command prefix or mentions the bot
-            if (message.HasStringPrefix(PREFIX, ref argPosition) || message.HasMentionPrefix(_client.CurrentUser, ref argPosition))
+            // Check if the message is in a DM or a server channel
+            if (context.IsPrivate)
             {
-                try
+                // In DMs, respond to commands with just the COMMAND_PREFIX
+                if (message.HasStringPrefix(COMMAND_PREFIX, ref argPosition))
                 {
-                    // Execute the command with the context and arguments
-                    await _commands.ExecuteAsync(context, argPosition, null);
+                    try
+                    {
+                        await _commands.ExecuteAsync(context, argPosition, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"Error: {ex.Message}");
+                        Console.ResetColor();
+                    }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                // In server channels, respond to commands with BOT_PREFIX + COMMAND_PREFIX or mentions
+                string fullPrefix = $"{BOT_PREFIX}{COMMAND_PREFIX}";
+                if (message.HasStringPrefix(fullPrefix, ref argPosition) || message.HasMentionPrefix(_client.CurrentUser, ref argPosition))
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: {ex.Message}");
-                    Console.ResetColor();
+                    try
+                    {
+                        await _commands.ExecuteAsync(context, argPosition, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"Error: {ex.Message}");
+                        Console.ResetColor();
+                    }
                 }
             }
         }

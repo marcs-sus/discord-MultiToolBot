@@ -22,7 +22,7 @@ namespace DiscordBot.Modules
                 await ReplyAsync("Please provide a valid number of sides (>= 2) and rolls (>= 1).");
                 return;
             }
-            
+
             // Define variables
             Random random = new Random();
             StringBuilder stringBuilder = new StringBuilder();

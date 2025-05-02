@@ -29,9 +29,10 @@ namespace DiscordBot.Modules
             foreach (var module in _commands.Modules)
             {
                 string moduleName = module.Name;
+                string moduleCommand = module.Commands.FirstOrDefault()?.Name ?? "No command available.";
                 string moduleSummary = module.Summary ?? "No summary available.";
 
-                embed.AddField(moduleName, moduleSummary);
+                embed.AddField(moduleName, $"`{Program.COMMAND_PREFIX}{moduleCommand}`\n{moduleSummary}");
             }
 
             await ReplyAsync(embed: embed.Build());

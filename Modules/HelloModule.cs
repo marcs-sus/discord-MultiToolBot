@@ -26,7 +26,7 @@ namespace DiscordBot.Modules
             Random random = new Random();
 
             // Reply with a random greeting and response
-            await ReplyAsync($"{greetings[random.Next(greetings.Length)]} {responses[random.Next(responses.Length)]}");
+            await ReplyAsync($"***{greetings[random.Next(greetings.Length)]} {responses[random.Next(responses.Length)]}***");
         }
     }
 }
