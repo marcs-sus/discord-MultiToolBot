@@ -14,7 +14,7 @@ namespace DiscordBot.Modules
     {
         [Command("roll")]
         [Summary("Rolls a dice with the specified number of sides and rolls.")]
-        public async Task RollAsync(int sides = 6, int rolls = 1)
+        public async Task RollAsync(int sides = 6, long rolls = 1)
         {
             // Validate the number of sides and rolls
             if (sides < 2 || rolls < 1)
@@ -27,25 +27,28 @@ namespace DiscordBot.Modules
             Random random = new Random();
             StringBuilder stringBuilder = new StringBuilder();
             int total = 0;
-            float avarage = 0;
 
-            // Use StringBuilder to build the response message
-            stringBuilder.AppendLine($"Rolling a **{sides}**-sided dice **{rolls}** time(s):");
-            stringBuilder.AppendLine($"**Results**:");
+            // Create an EmbedBuilder to build the response message
+            var embed = new EmbedBuilder()
+                .WithTitle($"Rolling a {sides}-sided dice {rolls} time(s):")
+                .WithColor(Color.Blue);
 
             // Roll the dice and calculate the total and average
             for (int i = 0; i < rolls; i++)
             {
                 int roll = random.Next(1, sides + 1);
                 total += roll;
-                stringBuilder.AppendLine($"Roll {i + 1} -> **{roll}**");
-            }
-            if (rolls > 1)
-            {
-                avarage = (float)total / rolls;
-                stringBuilder.AppendLine($"Average: **{avarage:F2}**");
+                embed.AddField($"Roll {i + 1}", roll, inline: true);
             }
 
+            if (rolls > 1)
+            {
+                float average = (float)total / rolls;
+                embed.AddField("Average", $"{average:F2}", inline: false);
+            }
+
+            // Send the embed as a reply
+            await ReplyAsync(embed: embed.Build());
 
             // Append the total to the message and reply
             await ReplyAsync(stringBuilder.ToString());
