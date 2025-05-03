@@ -13,7 +13,7 @@ namespace DiscordBot.Modules
     /// This module contains a command that searches for images using DuckDuckGo and returns a random result.
     /// </summary>
     [Name("Image Search")]
-    [Summary("This module contains a command that searches for images using DuckDuckGo and returns a random result.")]
+    [Summary("Searches for random images using DuckDuckGo.")]
     public class ImageSearchModule : ModuleBase<SocketCommandContext>
     {
         [Command("img")]

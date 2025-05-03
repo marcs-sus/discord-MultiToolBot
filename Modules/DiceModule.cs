@@ -9,7 +9,7 @@ namespace DiscordBot.Modules
     /// This module contains a command that rolls a dice with a specified number of sides and rolls.
     /// </summary>
     [Name("Dice")]
-    [Summary("This module contains a command that rolls a dice with a specified number of sides and rolls.")]
+    [Summary("Roll dices with specified number of sides and number of rolls.")]
     public class DiceModule : ModuleBase<SocketCommandContext>
     {
         [Command("roll")]

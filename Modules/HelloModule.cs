@@ -8,7 +8,7 @@ namespace DiscordBot.Modules
     /// This module contains a command that replies with a greeting message.
     /// </summary>
     [Name("Hello")]
-    [Summary("This module contains a command that replies with a greeting message.")]
+    [Summary("Replies users with a greetings messages.")]
     public class HelloModule : ModuleBase<SocketCommandContext>
     {
         private string[] greetings = { "Hello!", "Hi there!",

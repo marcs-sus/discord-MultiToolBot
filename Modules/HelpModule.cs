@@ -8,7 +8,7 @@ namespace DiscordBot.Modules
     /// This module contains a command that provides help information for the bot.
     /// </summary>
     [Name("Help")]
-    [Summary("This module contains a command that provides help information for the bot.")]
+    [Summary("Provides help information for the bot.")]
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private readonly CommandService _commands;
