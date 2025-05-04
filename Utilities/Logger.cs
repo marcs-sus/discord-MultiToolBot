@@ -3,6 +3,9 @@ using Discord;
 
 namespace DiscordBot.Utilities
 {
+    /// <summary>
+    /// This class is responsible for logging messages to the console.
+    /// </summary>
     public static class Logger
     {
         /// <summary>
