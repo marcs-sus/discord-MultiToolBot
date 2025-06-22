@@ -1,6 +1,7 @@
 using System;
 using Discord;
 using Discord.Commands;
+using DiscordBot.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace DiscordBot.Modules
@@ -16,27 +17,40 @@ namespace DiscordBot.Modules
         [Summary("Tells a random dad's joke.")]
         public async Task JokeAsync()
         {
-            using (var httpClient = new HttpClient())
+            try
             {
-                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "DiscordDadJokeBot (your.email@example.com)");
-
-                try
+                using (var httpClient = new HttpClient())
                 {
-                    HttpResponseMessage response = await httpClient.GetAsync("https://icanhazdadjoke.com/");
-                    response.EnsureSuccessStatusCode();
+                    httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "DiscordDadJokeBot (your.email@example.com)");
 
-                    string json = await response.Content.ReadAsStringAsync();
-                    JObject jokeObject = JObject.Parse(json);
-                    string joke = jokeObject["joke"]?.ToString() ?? "No joke found.";
+                    try
+                    {
+                        HttpResponseMessage response = await httpClient.GetAsync("https://icanhazdadjoke.com/");
+                        response.EnsureSuccessStatusCode();
 
-                    await ReplyAsync($"*{joke}*");
+                        string json = await response.Content.ReadAsStringAsync();
+                        JObject jokeObject = JObject.Parse(json);
+                        string joke = jokeObject["joke"]?.ToString() ?? "No joke found.";
+
+                        await ReplyAsync($"*{joke}*");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error fetching joke: {ex.Message}");
+                        await ReplyAsync("Sorry, I couldn't fetch a joke at the moment. Please try again later.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error fetching joke: {ex.Message}");
-                    await ReplyAsync("Sorry, I couldn't fetch a joke at the moment. Please try again later.");
-                }
+            }
+            catch (HttpRequestException ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "JokeModule", $"HTTP error: {ex.Message}"));
+                await ReplyAsync("I'm having trouble connecting to the joke service. Please try again later.");
+            }
+            catch (Exception ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "JokeModule", $"Unexpected error: {ex.Message}"));
+                await ReplyAsync("Something went wrong. Please try again.");
             }
         }
     }

@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using DiscordBot.Utilities;
 using DiscordBot.Modules;
 using System.Text.Json;
+using System.Net;
 
 namespace DiscordBot
 {
@@ -15,7 +16,11 @@ namespace DiscordBot
     {
         private static DiscordSocketClient _client = new DiscordSocketClient();
         private static CommandService _commands = new CommandService();
-        private static ServiceCollection _services = new ServiceCollection();
+        private static ServiceCollection _serviceCollection = new ServiceCollection();
+
+        // Rate limit configuration
+        private static readonly Dictionary<ulong, DateTime> _lastCommandTime = new();
+        private static readonly TimeSpan _rateLimitDelay = TimeSpan.FromSeconds(2);
 
         public static async Task Main()
         {
@@ -26,8 +31,8 @@ namespace DiscordBot
 
                 _client.Log += Logger.Log;
 
-                // Get the token from file
-                var token = File.ReadAllText("token.txt");
+                // Get the token from environment variable
+                var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
 
                 // Await to register commands
                 await RegisterCommandsAsync();
@@ -35,7 +40,7 @@ namespace DiscordBot
                 await _client.LoginAsync(TokenType.Bot, token);
                 await _client.StartAsync();
 
-                await Task.Delay(-1);
+                await Task.Delay(Timeout.Infinite);
             }
             catch (Exception ex)
             {
@@ -47,8 +52,8 @@ namespace DiscordBot
 
         private static async Task RegisterCommandsAsync()
         {
-            _services.AddSingleton(_commands);
-            var provider = _services.BuildServiceProvider();
+            _serviceCollection.AddSingleton(_commands);
+            var provider = _serviceCollection.BuildServiceProvider();
 
             // Create a command context and register the commands
             _client.MessageReceived += HandleCommandAsync;
@@ -76,6 +81,17 @@ namespace DiscordBot
             if (message.HasStringPrefix(Config.CommandPrefix, ref argPosition) ||
                 message.HasMentionPrefix(_client.CurrentUser, ref argPosition))
             {
+                // Rate limiting check
+                if (_lastCommandTime.TryGetValue(context.User.Id, out var lastTime) &&
+                    DateTime.UtcNow - lastTime < _rateLimitDelay)
+                {
+                    return;
+                }
+
+                // Update the last command time for the user
+                _lastCommandTime[context.User.Id] = DateTime.UtcNow;
+
+                // Execute the command
                 IResult result = await _commands.ExecuteAsync(context, argPosition, null);
                 if (!result.IsSuccess)
                 {

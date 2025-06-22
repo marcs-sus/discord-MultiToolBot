@@ -16,6 +16,13 @@ namespace DiscordBot.Modules
     [Summary("Searches for random images using DuckDuckGo.")]
     public class ImageSearchModule : ModuleBase<SocketCommandContext>
     {
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        static ImageSearchModule()
+        {
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Your-Bot-Name/1.0");
+        }
+
         [Command("img")]
         [Summary("Searches for an image and returns a random result.")]
         public async Task ImageSearchAsync([Remainder] string searchTerm)

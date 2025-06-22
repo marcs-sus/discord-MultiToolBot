@@ -17,9 +17,15 @@ namespace DiscordBot.Modules
         public async Task RollAsync(int sides = 6, long rolls = 1)
         {
             // Validate the number of sides and rolls
-            if (sides < 2 || rolls < 1)
+            if (sides < 2 || sides > 100)
             {
-                await ReplyAsync("Please provide a valid number of sides (>= 2) and rolls (>= 1).");
+                await ReplyAsync("Number of sides must be between 2 and 100.");
+                return;
+            }
+
+            if (rolls < 1 || rolls > 50)
+            {
+                await ReplyAsync("Number of rolls must be between 1 and 50.");
                 return;
             }
 
@@ -49,9 +55,6 @@ namespace DiscordBot.Modules
 
             // Send the embed as a reply
             await ReplyAsync(embed: embed.Build());
-
-            // Append the total to the message and reply
-            await ReplyAsync(stringBuilder.ToString());
         }
     }
 }
